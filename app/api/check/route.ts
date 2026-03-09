@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkClaim } from "@/lib/perplexity";
+import { checkClaim } from "@/lib/gemini";
 import type { CheckRequest } from "@/types";
 
 export async function POST(request: NextRequest) {

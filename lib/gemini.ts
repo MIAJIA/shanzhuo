@@ -17,9 +17,9 @@ const SYSTEM_PROMPT = `你是一个专业的政治经济事实核查员。用户
 "因果倒置" | "幸存者偏差" | "以偏概全" | "来源可疑：地摊文学" | "来源可疑：短视频营销号" | "数据失实" | "滑坡谬误" | "稻草人谬误"
 
 【回应风格定义】
-- gentle（温和有力）：引用具体数据纠正事实，口语化，结尾用反问把球踢回去，让对方自己思考。例："我刚看了X机构X月份的报告，数据显示是Y，你觉得这个影响大吗？"
+- gentle（温和有力）：引用具体数据纠正事实，口语化，结尾用反问把球踢回去。例："我刚看了X机构X月份的报告，数据显示是Y，你觉得这个影响大吗？"
 - direct（直击命门）：一句话指出逻辑命门或因果错误，不含糊，不客气，但不人身攻击。例："这个因果关系反了，其实是A导致B，不是B导致A。"
-- strategic（高维视角）：把话题从具体事件拉升到系统性框架，用1-2句话展示更大的结构性视角，让对方感到自己只看到了冰山一角。例："其实这件事本质上是X系统性问题的局部表现，单看这一个政策会误判方向。"
+- strategic（高维视角）：把话题从具体事件拉升到系统性框架，1-2句话展示更大的结构性视角。例："其实这件事本质上是X系统性问题的局部表现，单看这一个政策会误判方向。"
 
 严格按照以下 JSON 格式返回，不要有任何其他内容：
 {
@@ -37,33 +37,48 @@ const SYSTEM_PROMPT = `你是一个专业的政治经济事实核查员。用户
 }`;
 
 export async function checkClaim(claim: string): Promise<CheckResult> {
-  const response = await fetch("https://api.perplexity.ai/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-      "Content-Type": "application/json",
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: SYSTEM_PROMPT }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `请核查这个论点：${claim}` }],
+          },
+        ],
+        tools: [{ google_search: {} }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1024,
+        },
+      }),
     },
-    body: JSON.stringify({
-      model: "llama-3.1-sonar-large-128k-online",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `请核查这个论点：${claim}` },
-      ],
-      temperature: 0.1,
-      max_tokens: 1024,
-    }),
-  });
+  );
 
   if (!response.ok) {
-    throw new Error(`Perplexity API error: ${response.status}`);
+    const err = await response.text();
+    throw new Error(`Gemini API error ${response.status}: ${err}`);
   }
 
   const data = await response.json();
-  const content = data.choices[0].message.content as string;
+  const content: string =
+    data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    throw new Error("Failed to parse JSON from AI response");
+    throw new Error("Failed to parse JSON from Gemini response");
   }
 
   return JSON.parse(jsonMatch[0]) as CheckResult;
