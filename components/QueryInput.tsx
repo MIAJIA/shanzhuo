@@ -4,9 +4,14 @@ import { useState } from "react";
 interface QueryInputProps {
   onSubmit: (claim: string) => void;
   loading: boolean;
+  placeholder?: string;
 }
 
-export function QueryInput({ onSubmit, loading }: QueryInputProps) {
+export function QueryInput({
+  onSubmit,
+  loading,
+  placeholder,
+}: QueryInputProps) {
   const [value, setValue] = useState("");
 
   const handleSubmit = () => {
@@ -33,7 +38,9 @@ export function QueryInput({ onSubmit, loading }: QueryInputProps) {
               handleSubmit();
             }
           }}
-          placeholder="输入你听到的论点，例如：人民币今年一定会大幅贬值……"
+          placeholder={
+            placeholder ?? "输入你听到的论点，例如：人民币今年一定会大幅贬值……"
+          }
           rows={3}
           className="w-full bg-transparent border-none outline-none text-[var(--ink)] font-serif text-[15px] leading-[1.8] resize-none placeholder:text-[var(--ink-faint)] placeholder:font-light"
         />

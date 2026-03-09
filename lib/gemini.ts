@@ -128,6 +128,44 @@ export type StreamEvent =
   | { type: "result"; data: CheckResult }
   | { type: "error"; message: string };
 
+// ── 爹味破防 ──────────────────────────────────────────────
+
+import type { DadResult } from "@/types";
+
+const DAD_PROMPT = `你是一个专门分析"爹味说教"话术的顾问。用户会输入一句典型的爹味语录，你需要：
+
+1. 识别话术模式，从以下选一个最贴合的：
+   权威压制 / 经验绑架 / 年龄歧视 / 恐吓式预言 / 否定式说教 / 代际比较 / 条件施压 / 虚假关心
+
+2. translation：一句话揭穿这句话的真实意图，去掉包装直说内核。语气可以带点犀利但不愤怒。
+
+3. 三种回应（每种 1-2 句话，克制、有力、不失礼）：
+   - deflect（接招化解）：表面顺着对方，但把话题的控制权悄悄拿回来
+   - counter（反问破防）：一个问题让对方答不上来，或意识到自己的逻辑有问题
+   - exit（优雅收尾）：不争，但有尊严地结束这个话题
+
+只输出如下纯 JSON，不要任何解释或 markdown：
+{"pattern":"权威压制","translation":"...","replies":{"deflect":"...","counter":"...","exit":"..."}}`;
+
+export type DadStreamEvent =
+  | { type: "chunk"; text: string }
+  | { type: "result"; data: DadResult }
+  | { type: "error"; message: string };
+
+export async function* checkDadStream(
+  claim: string,
+): AsyncGenerator<DadStreamEvent> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
+
+  const formatted = await geminiJson(apiKey, DAD_PROMPT, `这句话是：${claim}`);
+
+  const jsonMatch = formatted.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Failed to parse JSON from Gemini response");
+
+  yield { type: "result", data: JSON.parse(jsonMatch[0]) as DadResult };
+}
+
 export async function* checkClaimStream(
   claim: string,
 ): AsyncGenerator<StreamEvent> {

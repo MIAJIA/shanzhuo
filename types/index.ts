@@ -32,3 +32,23 @@ export interface CheckResult {
 export interface CheckRequest {
   claim: string;
 }
+
+export type DadPattern =
+  | "权威压制"
+  | "经验绑架"
+  | "年龄歧视"
+  | "恐吓式预言"
+  | "否定式说教"
+  | "代际比较"
+  | "条件施压"
+  | "虚假关心";
+
+export interface DadResult {
+  pattern: DadPattern;
+  translation: string; // 一句话说破真实意图
+  replies: {
+    deflect: string; // 接招化解
+    counter: string; // 反问破防
+    exit: string; // 优雅收尾
+  };
+}
