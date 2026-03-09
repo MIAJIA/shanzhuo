@@ -1,7 +1,7 @@
 import type { CheckResult } from "@/types";
 
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
+const GEMINI_BASE =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro";
 
 function getCurrentDate(): string {
   return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
@@ -35,30 +35,77 @@ const FORMAT_PROMPT = `你是一个 JSON 格式化助手。根据以下研究内
 只输出如下纯 JSON，不要有任何解释或 markdown：
 {"verdict":"基本准确","fallacy":"null","sources":[{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."},{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."}],"replies":{"gentle":"...","direct":"...","strategic":"...","sarcastic":"..."}}`;
 
-async function geminiCall(
+// Step 1: streaming call with google_search
+export async function* geminiStream(
   apiKey: string,
   systemPrompt: string,
   userMessage: string,
-  options: {
-    useSearch?: boolean;
-    jsonMode?: boolean;
-  } = {},
+): AsyncGenerator<string> {
+  const body = {
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: "user", parts: [{ text: userMessage }] }],
+    tools: [{ google_search: {} }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 8192 },
+  };
+
+  const response = await fetch(`${GEMINI_BASE}:streamGenerateContent?alt=sse`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Gemini API error ${response.status}: ${err}`);
+  }
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") return;
+      try {
+        const chunk = JSON.parse(json);
+        const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) yield text;
+      } catch {
+        // skip malformed chunk
+      }
+    }
+  }
+}
+
+// Step 2: non-streaming JSON call
+async function geminiJson(
+  apiKey: string,
+  systemPrompt: string,
+  userMessage: string,
 ): Promise<string> {
-  const body: Record<string, unknown> = {
+  const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [{ role: "user", parts: [{ text: userMessage }] }],
     generationConfig: {
       temperature: 0.1,
       maxOutputTokens: 8192,
-      ...(options.jsonMode ? { responseMimeType: "application/json" } : {}),
+      responseMimeType: "application/json",
     },
   };
 
-  if (options.useSearch) {
-    body.tools = [{ google_search: {} }];
-  }
-
-  const response = await fetch(GEMINI_URL, {
+  const response = await fetch(`${GEMINI_BASE}:generateContent`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -76,30 +123,37 @@ async function geminiCall(
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-export async function checkClaim(claim: string): Promise<CheckResult> {
+export type StreamEvent =
+  | { type: "chunk"; text: string }
+  | { type: "result"; data: CheckResult }
+  | { type: "error"; message: string };
+
+export async function* checkClaimStream(
+  claim: string,
+): AsyncGenerator<StreamEvent> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
-  // Step 1: Real-time research with Google Search
-  const research = await geminiCall(
+  // Step 1: stream research text
+  let research = "";
+  for await (const chunk of geminiStream(
     apiKey,
     buildResearchPrompt(),
     `请核查这个论点：${claim}`,
-    { useSearch: true },
-  );
+  )) {
+    research += chunk;
+    yield { type: "chunk", text: chunk };
+  }
 
-  // Step 2: Format research into structured JSON
-  const formatted = await geminiCall(
+  // Step 2: format into JSON (non-streaming, JSON mode)
+  const formatted = await geminiJson(
     apiKey,
     FORMAT_PROMPT,
     `研究内容：\n${research}\n\n原始论点：${claim}`,
-    { jsonMode: true },
   );
 
   const jsonMatch = formatted.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Failed to parse JSON from Gemini response");
-  }
+  if (!jsonMatch) throw new Error("Failed to parse JSON from Gemini response");
 
-  return JSON.parse(jsonMatch[0]) as CheckResult;
+  yield { type: "result", data: JSON.parse(jsonMatch[0]) as CheckResult };
 }
