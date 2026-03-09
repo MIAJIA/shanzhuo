@@ -1,26 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* 极简禅意 color tokens */
+  --color-bg: #f4efe6;
+  --color-bg2: #ede6d8;
+  --color-ink: #1c1a16;
+  --color-ink-light: #7a7268;
+  --color-ink-faint: #b8b0a3;
+  --color-vermillion: #c44b2b;
+  --color-gold: #a07830;
+  --color-border: #d8d0c0;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Font families */
+  --font-serif: "Noto Serif SC", serif;
+  --font-sans: "Noto Sans SC", sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Animations */
+  --animate-fade-up: fadeUp 0.5s ease;
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
+/* CSS custom properties for direct var() usage */
+:root {
+  --bg: #f4efe6;
+  --bg2: #ede6d8;
+  --ink: #1c1a16;
+  --ink-light: #7a7268;
+  --ink-faint: #b8b0a3;
+  --vermillion: #c44b2b;
+  --gold: #a07830;
+  --border: #d8d0c0;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Noto Sans SC", sans-serif;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
 }
