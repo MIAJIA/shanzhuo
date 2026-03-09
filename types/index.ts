@@ -25,6 +25,7 @@ export interface CheckResult {
     gentle: string; // 温和有力
     direct: string; // 直击命门
     strategic: string; // 高维视角
+    sarcastic: string; // 暗讽
   };
 }
 

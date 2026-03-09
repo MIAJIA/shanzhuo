@@ -40,13 +40,14 @@ function buildResearchPrompt(recency: Recency): string {
 // Step 2: Format research into structured JSON
 const FORMAT_PROMPT = `你是一个 JSON 格式化助手。根据以下研究内容，生成规范 JSON。
 
-【回应风格要求】（三种风格都必须包含具体数字和全球对比，禁止泛泛而谈）
+【回应风格要求】（前三种风格都必须包含具体数字和全球对比，禁止泛泛而谈）
 - gentle：口语化，引用具体最新数字，结尾反问把球踢回去。必须有具体数据点和全球横向对比。
 - direct：一句话精准反驳，必须指出具体反例或被忽略的最新数据，不能说"原因是多方面的"。
 - strategic：把论点放进全球或历史坐标系，必须点名至少一个横向对比（其他国家/历史时期）并附最新具体数据，让对方意识到只看到了局部。
+- sarcastic：暗讽风格。表面上顺着对方说，实则用一个反转细节轻轻戳穿。语气云淡风轻，不正面冲突，但讽刺感要让人回味一两秒才能懂。控制在1-2句话，不要太用力，留白比爆破更有杀伤力。例："哦对，就像当年说房价只会涨的那批人，后来也用同样的逻辑解释为什么它跌的。"
 
 只输出如下纯 JSON，不要有任何解释或 markdown：
-{"verdict":"基本准确","fallacy":"null","sources":[{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."},{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."}],"replies":{"gentle":"...","direct":"...","strategic":"..."}}`;
+{"verdict":"基本准确","fallacy":"null","sources":[{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."},{"text":"说明","source":"机构 · YYYY-MM-DD 文件名","url":"https://..."}],"replies":{"gentle":"...","direct":"...","strategic":"...","sarcastic":"..."}}`;
 
 async function geminiCall(
   apiKey: string,

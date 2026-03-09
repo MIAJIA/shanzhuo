@@ -6,24 +6,25 @@ interface ReplyTabsProps {
     gentle: string;
     direct: string;
     strategic: string;
+    sarcastic: string;
   };
 }
 
-const TABS = [
-  { key: "gentle" as const, label: "温和有力" },
-  { key: "direct" as const, label: "直击命门" },
-  { key: "strategic" as const, label: "高维视角" },
+type ReplyKey = "gentle" | "direct" | "strategic" | "sarcastic";
+
+const TABS: { key: ReplyKey; label: string }[] = [
+  { key: "gentle", label: "温和有力" },
+  { key: "direct", label: "直击命门" },
+  { key: "strategic", label: "高维视角" },
+  { key: "sarcastic", label: "暗讽" },
 ];
 
 export function ReplyTabs({ replies }: ReplyTabsProps) {
-  const [active, setActive] = useState<"gentle" | "direct" | "strategic">(
-    "gentle",
-  );
+  const [active, setActive] = useState<ReplyKey>("gentle");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(replies[active]).then(() => {
-      // Haptic feedback on mobile
       if (navigator.vibrate) navigator.vibrate(150);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -39,7 +40,9 @@ export function ReplyTabs({ replies }: ReplyTabsProps) {
             onClick={() => setActive(tab.key)}
             className={`px-3.5 py-1 text-[11px] tracking-[1px] border transition-all cursor-pointer font-sans ${
               active === tab.key
-                ? "bg-[var(--ink)] border-[var(--ink)] text-[var(--bg)]"
+                ? tab.key === "sarcastic"
+                  ? "bg-[var(--gold)] border-[var(--gold)] text-white"
+                  : "bg-[var(--ink)] border-[var(--ink)] text-[var(--bg)]"
                 : "bg-transparent border-[var(--border)] text-[var(--ink-light)] hover:border-[var(--ink-light)]"
             }`}
           >
@@ -47,7 +50,13 @@ export function ReplyTabs({ replies }: ReplyTabsProps) {
           </button>
         ))}
       </div>
-      <p className="font-serif text-sm leading-[1.9] text-[var(--ink)] min-h-[72px] border-l-2 border-vermillion pl-3.5">
+      <p
+        className={`font-serif text-sm leading-[1.9] text-[var(--ink)] min-h-[72px] border-l-2 pl-3.5 ${
+          active === "sarcastic"
+            ? "border-[var(--gold)] italic"
+            : "border-vermillion"
+        }`}
+      >
         {replies[active]}
       </p>
       <button
