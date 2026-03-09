@@ -3,10 +3,9 @@ import { useState } from "react";
 import type { DadResult } from "@/types";
 import { StampCard } from "./StampCard";
 
-type ReplyKey = "energySave" | "projection" | "counter" | "aerial";
+type ReplyKey = "projection" | "counter" | "aerial";
 
 const TABS: { key: ReplyKey; label: string }[] = [
-  { key: "energySave", label: "节能模式" },
   { key: "projection", label: "看穿投射" },
   { key: "counter", label: "反问破防" },
   { key: "aerial", label: "云端俯视" },
@@ -17,7 +16,7 @@ interface DadResultCardProps {
 }
 
 export function DadResultCard({ result }: DadResultCardProps) {
-  const [active, setActive] = useState<ReplyKey>("energySave");
+  const [active, setActive] = useState<ReplyKey>("projection");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {

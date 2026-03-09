@@ -139,14 +139,13 @@ const DAD_PROMPT = `你是一个专门分析"爹味说教"话术的顾问。用�
 
 2. translation：一句话揭穿这句话的真实意图，去掉包装直说内核。语气犀利但不愤怒。
 
-3. 四种回应（每种 1-2 句话，克制、有力、不失礼）：
-   - energySave（节能模式）：顺水推舟，表面"嗯嗯您说得对"，内心稳住不被带走，同时用一句话悄悄把气场转移走。省力但有效。
+3. 三种回应（每种 1-2 句话，克制、有力、不失礼）：
    - projection（看穿投射）：老登说的往往是自己年轻时的遗憾，不是在评价你。温柔但精准地点出这一层，让对方和在场的人都若有所思。
    - counter（反问破防）：一个问题让对方答不上来，或意识到自己逻辑有漏洞。适合有余力时用。
    - aerial（云端俯视）：用轻描淡写的幽默把对方的逻辑架空。不愤怒，不正面冲突，但在场的人都懂了——就是那种笑着让人说不下去的感觉。
 
 只输出如下纯 JSON，不要任何解释或 markdown：
-{"pattern":"权威压制","translation":"...","replies":{"energySave":"...","projection":"...","counter":"...","aerial":"..."}}`;
+{"pattern":"权威压制","translation":"...","replies":{"projection":"...","counter":"...","aerial":"..."}}`;
 
 export type DadStreamEvent =
   | { type: "chunk"; text: string }
