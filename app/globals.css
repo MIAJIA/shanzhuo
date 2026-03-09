@@ -29,6 +29,17 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes sweep {
+    0% {
+      left: -45%;
+      width: 45%;
+    }
+    100% {
+      left: 100%;
+      width: 45%;
+    }
+  }
 }
 
 /* CSS custom properties for direct var() usage */

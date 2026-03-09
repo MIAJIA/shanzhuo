@@ -1,7 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QueryInput } from "@/components/QueryInput";
 import { ResultCard } from "@/components/ResultCard";
+
+const STATUS_MESSAGES = [
+  "正在检索最新数据…",
+  "正在比对权威信源…",
+  "正在分析逻辑结构…",
+  "正在整理回应角度…",
+];
 import type { CheckResult } from "@/types";
 
 export default function Home() {
@@ -9,6 +16,19 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [statusIndex, setStatusIndex] = useState(0);
+
+  const showSweep = loading && !streamText && !result;
+
+  useEffect(() => {
+    if (!showSweep) return;
+    setStatusIndex(0);
+    const id = setInterval(
+      () => setStatusIndex((i) => (i + 1) % STATUS_MESSAGES.length),
+      3500,
+    );
+    return () => clearInterval(id);
+  }, [showSweep]);
 
   const handleSubmit = async (claim: string) => {
     setLoading(true);
@@ -83,6 +103,20 @@ export default function Home() {
 
       <div className="px-7 py-8">
         <QueryInput onSubmit={handleSubmit} loading={loading} />
+
+        {showSweep && (
+          <div className="mt-5">
+            <div className="relative h-[1px] bg-[var(--border)] overflow-hidden">
+              <div
+                className="absolute top-0 h-full bg-vermillion"
+                style={{ animation: "sweep 1.8s ease-in-out infinite" }}
+              />
+            </div>
+            <p className="mt-2.5 text-[10px] tracking-[2px] text-[var(--ink-faint)] font-sans">
+              {STATUS_MESSAGES[statusIndex]}
+            </p>
+          </div>
+        )}
 
         {error && (
           <p className="mt-4 text-sm text-vermillion font-serif">{error}</p>
