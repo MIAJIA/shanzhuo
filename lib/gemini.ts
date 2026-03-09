@@ -1,7 +1,7 @@
 import type { CheckResult } from "@/types";
 
 const GEMINI_BASE =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview";
 
 function getCurrentDate(): string {
   return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
