@@ -3,12 +3,13 @@ import { useState } from "react";
 import type { DadResult } from "@/types";
 import { StampCard } from "./StampCard";
 
-type ReplyKey = "deflect" | "counter" | "exit";
+type ReplyKey = "energySave" | "projection" | "counter" | "aerial";
 
 const TABS: { key: ReplyKey; label: string }[] = [
-  { key: "deflect", label: "接招化解" },
+  { key: "energySave", label: "节能模式" },
+  { key: "projection", label: "看穿投射" },
   { key: "counter", label: "反问破防" },
-  { key: "exit", label: "优雅收尾" },
+  { key: "aerial", label: "云端俯视" },
 ];
 
 interface DadResultCardProps {
@@ -16,7 +17,7 @@ interface DadResultCardProps {
 }
 
 export function DadResultCard({ result }: DadResultCardProps) {
-  const [active, setActive] = useState<ReplyKey>("deflect");
+  const [active, setActive] = useState<ReplyKey>("energySave");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {

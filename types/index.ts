@@ -47,8 +47,9 @@ export interface DadResult {
   pattern: DadPattern;
   translation: string; // 一句话说破真实意图
   replies: {
-    deflect: string; // 接招化解
+    energySave: string; // 节能模式
+    projection: string; // 看穿投射
     counter: string; // 反问破防
-    exit: string; // 优雅收尾
+    aerial: string; // 云端俯视
   };
 }
