@@ -1,7 +1,7 @@
 import type { CheckResult } from "@/types";
 
 const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
 
 export type Recency = "1d" | "1w" | "1m" | "3m" | "1y";
 
