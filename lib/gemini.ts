@@ -3,18 +3,39 @@ import type { CheckResult } from "@/types";
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-// Step 1: Research with real-time Google Search
-const RESEARCH_PROMPT = `你是一个政治经济事实核查员。用户提出一个论点，你需要用最新数据核查它。
+export type Recency = "1d" | "1w" | "1m" | "3m" | "1y";
 
-今天是2026年。请用 Google Search 查找最新（2025-2026年）的数据。
+function getCurrentDate(): string {
+  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+}
+
+function getRecencyLabel(recency: Recency): string {
+  const labels: Record<Recency, string> = {
+    "1d": "过去24小时",
+    "1w": "过去一周",
+    "1m": "过去一个月",
+    "3m": "过去三个月",
+    "1y": "过去一年",
+  };
+  return labels[recency];
+}
+
+function buildResearchPrompt(recency: Recency): string {
+  const today = getCurrentDate();
+  const recencyLabel = getRecencyLabel(recency);
+
+  return `你是一个政治经济事实核查员。用户提出一个论点，你需要用最新数据核查它。
+
+今天是 ${today}。请用 Google Search 优先查找【${recencyLabel}】内发布的数据和报告。
 
 请提供：
 1. 这个论点的准确性判断（基本准确/部分成立/缺乏依据/明显错误）
 2. 最符合的逻辑谬误（如有），从以下选：因果倒置/幸存者偏差/以偏概全/来源可疑：地摊文学/来源可疑：短视频营销号/数据失实/滑坡谬误/稻草人谬误
-3. 2条权威信源（央行、统计局、IMF、美联储等官网），必须有精确日期
+3. 2条权威信源（央行、统计局、IMF、美联储等官网），必须注明精确发布日期
 4. 关键数据点：具体数字、百分比、全球横向对比（其他国家同期数据）
 
-用中文输出，格式自由，要尽可能具体，包含最新数字。`;
+用中文输出，格式自由，尽可能具体，优先引用 ${today} 前 ${recencyLabel} 的最新数字。`;
+}
 
 // Step 2: Format research into structured JSON
 const FORMAT_PROMPT = `你是一个 JSON 格式化助手。根据以下研究内容，生成规范 JSON。
@@ -68,14 +89,17 @@ async function geminiCall(
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-export async function checkClaim(claim: string): Promise<CheckResult> {
+export async function checkClaim(
+  claim: string,
+  recency: Recency = "1m",
+): Promise<CheckResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
   // Step 1: Real-time research with Google Search
   const research = await geminiCall(
     apiKey,
-    RESEARCH_PROMPT,
+    buildResearchPrompt(recency),
     `请核查这个论点：${claim}`,
     { useSearch: true },
   );
