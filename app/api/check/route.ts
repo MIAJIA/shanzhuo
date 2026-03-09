@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { NextRequest } from "next/server";
 import { checkClaimStream } from "@/lib/gemini";
 import type { CheckRequest } from "@/types";
