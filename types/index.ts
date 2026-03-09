@@ -31,5 +31,4 @@ export interface CheckResult {
 
 export interface CheckRequest {
   claim: string;
-  recency?: "1d" | "1w" | "1m" | "3m" | "1y";
 }

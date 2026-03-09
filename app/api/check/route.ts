@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await checkClaim(body.claim.trim(), body.recency ?? "1m");
+    const result = await checkClaim(body.claim.trim());
     return NextResponse.json(result);
   } catch (error) {
     console.error("Check API error:", error);

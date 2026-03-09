@@ -3,14 +3,12 @@ import { useState } from "react";
 import { QueryInput } from "@/components/QueryInput";
 import { ResultCard } from "@/components/ResultCard";
 import type { CheckResult } from "@/types";
-import type { Recency } from "@/lib/gemini";
-
 export default function Home() {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (claim: string, recency: Recency) => {
+  const handleSubmit = async (claim: string) => {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -19,7 +17,7 @@ export default function Home() {
       const res = await fetch("/api/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claim, recency }),
+        body: JSON.stringify({ claim }),
       });
       const data = await res.json();
 
